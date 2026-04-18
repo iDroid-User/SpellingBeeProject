@@ -39,10 +39,13 @@ public class SpellingBee {
             return;
         }
         ArrayList<String> solutions = new ArrayList<>(validateWords(puzzle));
+        int totalScore = 0;
         for (String solution : solutions) {
-            sbg.addWord(solution, Color.BLACK);
-            // Score words
+            int score = scoreWord(solution, puzzle); totalScore += score;
+            Color color = isPangram(solution, puzzle) ? Color.BLUE : Color.BLACK;
+            sbg.addWord(solution + " (" + score + ")", color);
         }
+        sbg.showMessage(solutions.size() + " words; " + totalScore + " points", Color.BLACK);
     }
 
     // Decompose the puzzleAction problem: check whether a puzzle is legal
@@ -118,6 +121,16 @@ public class SpellingBee {
             }
         }
         return score; // Base score
+    }
+
+    // Decompose the solveAction problem: color words accordingly
+    private boolean isPangram(String w, String puzz) {
+        if (w.length() >= 7) {
+            for (int i = 0; i < puzz.length(); i++) {
+                if (w.indexOf(Character.toLowerCase(puzz.charAt(i))) == -1) return false; // Not a pangram
+            }
+            return true; // A pangram
+        } else return false; // Word does not contain all puzzle letters
     }
 
 /* Constants */
