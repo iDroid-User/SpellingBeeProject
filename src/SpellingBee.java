@@ -5,7 +5,6 @@
  * BE SURE TO CHANGE THIS COMMENT WHEN YOU COMPLETE YOUR SOLUTION.
  */
 
-//import edu.willamette.cs1.spellingbee.SpellingBeeGraphics; // Struggle: this was throwing things off!
 import java.awt.Color;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
@@ -19,56 +18,58 @@ public class SpellingBee {
         // Add two interactors to the control strip at the bottom of the window
         // The calls to addField() and addButton() specify the actions that occur when the user triggers events
         sbg.addField("Puzzle", (s) -> puzzleAction(s)); // Calls puzzleAction(), passing the puzzle string
-        sbg.addButton("Solve", (s) -> solveAction()); // Calls solveAction()
-        sbg.addField("Word", (s) -> wordAction(s), 7);
+        sbg.addButton("Solve", (a) -> solveAction());
+        sbg.addField("Word", (w) -> wordAction(w), 7);
     }
 
     private void puzzleAction(String s) {
         sbg.clearWordList();
-        totalScore = 0; // New puzzle, new score
+        sbg.showMessage(""); // Clear the message area
         String error = validatePuzzle(s);
         if (error == null) {
-            sbg.setBeehiveLetters(s); // Display puzzle letters on the screen
-            // getBeehiveLetters() returns default value (spaces) if Solve is clicked before a valid puzzle is set
-            puzzle = sbg.getBeehiveLetters().trim(); // Fetch data at the top level, then pass it down to helpers!
-            solutions = new ArrayList<>(validateWords(puzzle));
-        } else
-            sbg.showMessage(error, Color.RED); // Tells the user WHY the puzzle failed
+            isNewPuzzle = true;
+            sbg.setBeehiveLetters(s); // Display puzzle letters on the screen; fetch data top-down to helpers!
+            puzzle = s;
+            solutions = new ArrayList<>(validateWords());
+            foundWords = new ArrayList<>();
+            totalScore = 0; // New puzzle, new score
+        } else sbg.showMessage(error, Color.RED); // Tells the user WHY the puzzle failed
     }
 
     private void solveAction() {
-        sbg.clearWordList(); // Resets the previous window
+        if (!isNewPuzzle) return;
+
         if (puzzle.isEmpty()) {
             sbg.showMessage("Please enter a puzzle first.", Color.RED);
             return;
         }
         for (String solution : solutions) {
-            int score = scoreWord(solution, puzzle); totalScore += score;
-            Color color = isPangram(solution, puzzle) ? Color.BLUE : Color.BLACK;
+            int score = scoreWord(solution);
+            totalScore += score;
+            Color color = isPangram(solution) ? Color.BLUE : Color.BLACK;
             sbg.addWord(solution + " (" + score + ")", color);
         }
         sbg.showMessage(solutions.size() + " words; " + totalScore + " points", Color.BLACK);
-        totalScore = 0; // Keeps score constant after a refresh
+        isNewPuzzle = false; // Start a new puzzle to solve again
     }
 
-    private void wordAction(String s) {
-        String attempt = sbg.getField("Word");
-
+    private void wordAction(String w) {
         if (puzzle.isEmpty()) {
             sbg.showMessage("Please enter a puzzle first.", Color.RED);
             return;
         }
+        String error = validateInput(w);
         // Check legality before traversing the list of words to validate
-        if (isWordLegal(attempt, puzzle)) {
-            if (solutions.contains(attempt)) {
-                int score = scoreWord(attempt, puzzle); totalScore += score;
-                Color color = isPangram(attempt, puzzle) ? Color.BLUE : Color.BLACK;
-                sbg.addWord(attempt + " (" + score + ")", color);
-                solutions.remove(attempt);
-                sbg.showMessage(solutions.size() + " words; " + totalScore + " points", Color.BLACK);
-                sbg.setField("Word", ""); // UX feature: clear field after an acceptable word is entered
-            }
-        }
+        if (error == null) {
+            int score = scoreWord(w);
+            totalScore += score;
+            Color color = isPangram(w) ? Color.BLUE : Color.BLACK;
+            sbg.addWord(w + " (" + score + ")", color);
+            foundWords.add(w);
+            solutions.remove(w);
+            sbg.showMessage(solutions.size() + " words; " + totalScore + " points", Color.BLACK);
+            sbg.setField("Word", ""); // UX feature: clear field after an acceptable word is entered
+        } else sbg.showMessage(error, Color.RED);
     }
 
     // Decompose the puzzleAction problem: check whether a puzzle is legal
@@ -88,7 +89,7 @@ public class SpellingBee {
 
     // Decompose the solveAction problem: read the dictionary into a list
     private ArrayList<String> readDictionary() {
-        ArrayList<String> entries = new ArrayList<>();
+        entries = new ArrayList<>(); // The dictionary in an ArrayList
         Scanner dictionary = null;
         try {
             dictionary = new Scanner(new File(ENGLISH_DICTIONARY)); // Wrapped with a try-catch-throw
@@ -105,39 +106,39 @@ public class SpellingBee {
     }
 
     // Decompose the solveAction problem: check whether a particular word meets the requirements
-    private boolean isWordLegal(String word, String puzz) {
+    private boolean isWordLegal(String word) {
         if (word.length() >= 4) {
             for (int i = 0; i < word.length(); i++) {
                 // Make character comparison case-insensitive
-                if (puzz.indexOf(Character.toUpperCase(word.charAt(i))) == -1) return false; // Illegal letter found
+                if (puzzle.indexOf(Character.toUpperCase(word.charAt(i))) == -1) return false; // Illegal letter found
             }
             // Make character comparison case-insensitive
-            if (word.indexOf(Character.toLowerCase(puzz.charAt(0))) == -1) return false; // Missing center letter
+            if (word.indexOf(Character.toLowerCase(puzzle.charAt(0))) == -1) return false; // Missing center letter
         } else return false; // Shorter than 4 letters
         return true; // Passed all criteria
     }
 
     // Decompose the solveAction problem: read the dictionary and check each word
-    private ArrayList<String> validateWords(String puzz) {
+    private ArrayList<String> validateWords() {
         ArrayList<String> words = new ArrayList<>(readDictionary()); // Assign a shallow copy of the return ArrayList
         ArrayList<String> legalWords = new ArrayList<>();
 
         for (String word : words) {
-            if (isWordLegal(word, puzz)) legalWords.add(word);
+            if (isWordLegal(word)) legalWords.add(word);
         }
         return legalWords;
     }
 
     // Decompose the solveAction problem: display scores following the words that they credit
-    private int scoreWord(String word, String puzz) {
+    private int scoreWord(String word) {
         int score = 1;
         if (word.length() > 4) {
             score *= word.length(); // Words 4 letters or longer score a point per letter
             // A 7-letter word is likely a pangram
             if (word.length() >= 7) {
-                for (int i = 0; i < puzz.length(); i++) {
+                for (int i = 0; i < puzzle.length(); i++) {
                     // Make character comparison case-insensitive
-                    if (word.indexOf(Character.toLowerCase(puzz.charAt(i))) == -1) return score; // Not a pangram
+                    if (word.indexOf(Character.toLowerCase(puzzle.charAt(i))) == -1) return score; // Not a pangram
                 }
                 return score + 7; // 7-point pangram bonus applied
             }
@@ -146,18 +147,29 @@ public class SpellingBee {
     }
 
     // Decompose the solveAction problem: color words accordingly
-    private boolean isPangram(String word, String puzz) {
+    private boolean isPangram(String word) {
         if (word.length() >= 7) {
-            for (int i = 0; i < puzz.length(); i++) {
-                if (word.indexOf(Character.toLowerCase(puzz.charAt(i))) == -1) return false; // Not a pangram
+            for (int i = 0; i < puzzle.length(); i++) {
+                if (word.indexOf(Character.toLowerCase(puzzle.charAt(i))) == -1) return false; // Not a pangram
             }
             return true; // A pangram
         } else return false; // Word does not contain all puzzle letters
     }
 
-    // Decompose the wordAction problem: find the word in the puzzle
-    private String findWord(String w, ArrayList<String> l) {
-        return "";
+    // Decompose the wordAction problem: if the word doesn't count, tell the user why
+    private String validateInput(String w) {
+        if (!entries.contains(w)) return "That word is not in the dictionary.";
+        if (foundWords.contains(w)) return "That word has already been found.";
+
+        if (w.length() >= 4) {
+            for (int i = 0; i < w.length(); i++) {
+                if (puzzle.indexOf(Character.toUpperCase(w.charAt(i))) == -1)
+                    return "That word includes letters not in the beehive."; // Illegal letter found
+            }
+            if (w.indexOf(Character.toLowerCase(puzzle.charAt(0))) == -1)
+                return "That word does not include the center letter."; // Missing center letter
+        } else return "That word is shorter than 4 letters."; // Shorter than 4 letters
+        return null; // Passed all criteria
     }
 
 /* Constants */
@@ -168,8 +180,9 @@ public class SpellingBee {
 
     private SpellingBeeGraphics sbg;
     private String puzzle;
-    private ArrayList<String> solutions;
+    private ArrayList<String> solutions, entries, foundWords;
     private int totalScore;
+    private boolean isNewPuzzle; // Optimizes solveAction()
 
 /* Startup code */
 
