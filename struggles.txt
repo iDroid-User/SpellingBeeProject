@@ -1,6 +1,24 @@
 A bit intimidated by the SpellingBeeGraphics package, I willed myself to just start, and I tried running
 SpellingBee.java. I got an error thrown by the first `import` statement: `import edu.willamette.cs1.spellingbee.*`. I
-eventually commented out that `import` statement, and SpellingBee.java became runnable.
+eventually commented out that `import` statement, and SpellingBee.java became runnable — an unexpected way to debug.
 
-I found relief in decomposing the higher-level functions (puzzleAction, solveAction, wordAction). I realized that it is
+I found relief in decomposing the higher-level functions (puzzleAction, solveAction, wordAction). I realized why it is
 a best practice in software engineering to process data in this hierarchical flow — it truly decomposes the problem.
+
+I found puzzleAction() to be the most intuitive function to implement. solveAction() gave me trouble: it required five
+helper functions, each a level of decomposition. To the majority of them, I passed either or both the list of solutions
+and the puzzle string as arguments. I refused to access the puzzle string with the SpellingBeeGraphics library,
+sticking to the paradigm of fetching data high and passing it down to helpers. The helpers would later be refactored to
+access this data from member variables. This refactoring also solved the problem of accessing the puzzle string from
+solveAction(), and it reduced unnecessary queries. While implementing readDictionary(), I was unsure of whether to
+dedicate it solely to reading EnglishWords.txt or something more. While implementing isWordLegal(), I was unsure if I
+should call it from readDictionary() — eventually, I didn't. I was unsure if this function should validate words against
+the puzzle string — eventually it did. While implementing validateWords(), I was unsure of how it differed from the
+previous helper — instructions unclear, maybe? But I noticed the keyword "higher-level," so I made it yet another level
+of decomposition, calling the previous two helpers from it. Implementing scoreWord() was intuitive. Decomposing
+wordAction() gave me problems, although it only required one helper. I was unsure of including the word's score in the
+same string as the word — eventually, I did. While implementing validateInput(), I was unsure of whether to remove a
+found word from the list of solutions or track it — eventually, I did both.
+
+With time to spare, I considered optimizing the program. I figured that I could flag a new puzzle state to prevent
+my program from honoring unnecessary calls to solveAction(). More to come!
