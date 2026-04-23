@@ -1,0 +1,6 @@
+A bit intimidated by the SpellingBeeGraphics package, I willed myself to just start, and I tried running
+SpellingBee.java. I got an error thrown by the first `import` statement: `import edu.willamette.cs1.spellingbee.*`. I
+eventually commented out that `import` statement, and SpellingBee.java became runnable.
+
+I found relief in decomposing the higher-level functions (puzzleAction, solveAction, wordAction). I realized that it is
+a best practice in software engineering to process data in this hierarchical flow — it truly decomposes the problem.

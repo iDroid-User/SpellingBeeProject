@@ -1,8 +1,7 @@
 /*
  * File: SpellingBee.java
  * ----------------------
- * This program contains the starter file for the SpellingBee application.
- * BE SURE TO CHANGE THIS COMMENT WHEN YOU COMPLETE YOUR SOLUTION.
+ * This program contains the logic behind the "Puzzle" field, the "Solve" button, and the "Word" field.
  */
 
 import java.awt.Color;
@@ -73,7 +72,7 @@ public class SpellingBee {
     }
 
     // Decompose the puzzleAction problem: check whether a puzzle is legal
-    private String validatePuzzle(String s) {
+    String validatePuzzle(String s) {
         if (s.length() == 7) {
             for (int i = 0; i < s.length(); i++) {
                 char c = s.charAt(i);
@@ -106,13 +105,13 @@ public class SpellingBee {
     }
 
     // Decompose the solveAction problem: check whether a particular word meets the requirements
-    private boolean isWordLegal(String word) {
+    boolean isWordLegal(String word) {
         if (word.length() >= 4) {
             for (int i = 0; i < word.length(); i++) {
-                // Make character comparison case-insensitive
+                // Apply case conversion when comparing each letter of the word against the puzzle
                 if (puzzle.indexOf(Character.toUpperCase(word.charAt(i))) == -1) return false; // Illegal letter found
             }
-            // Make character comparison case-insensitive
+            // Apply case conversion when comparing the center letter against the word
             if (word.indexOf(Character.toLowerCase(puzzle.charAt(0))) == -1) return false; // Missing center letter
         } else return false; // Shorter than 4 letters
         return true; // Passed all criteria
@@ -130,7 +129,7 @@ public class SpellingBee {
     }
 
     // Decompose the solveAction problem: display scores following the words that they credit
-    private int scoreWord(String word) {
+    int scoreWord(String word) {
         int score = 1;
         if (word.length() > 4) {
             score *= word.length(); // Words 4 letters or longer score a point per letter
@@ -140,14 +139,14 @@ public class SpellingBee {
                     // Make character comparison case-insensitive
                     if (word.indexOf(Character.toLowerCase(puzzle.charAt(i))) == -1) return score; // Not a pangram
                 }
-                return score + 7; // 7-point pangram bonus applied
+                return score + 7; // Pangram bonus applied
             }
         }
         return score; // Base score
     }
 
     // Decompose the solveAction problem: color words accordingly
-    private boolean isPangram(String word) {
+    boolean isPangram(String word) {
         if (word.length() >= 7) {
             for (int i = 0; i < puzzle.length(); i++) {
                 if (word.indexOf(Character.toLowerCase(puzzle.charAt(i))) == -1) return false; // Not a pangram
@@ -176,10 +175,10 @@ public class SpellingBee {
 
     private static final String ENGLISH_DICTIONARY = "EnglishWords.txt";
 
-/* Private instance variables */
+/* Package-private (for testing) instance variables */
 
     private SpellingBeeGraphics sbg;
-    private String puzzle;
+    String puzzle;
     private ArrayList<String> solutions, entries, foundWords;
     private int totalScore;
     private boolean isNewPuzzle; // Optimizes solveAction()
